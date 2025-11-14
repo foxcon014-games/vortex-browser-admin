@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Notes</title>
+<style>
+  body {
+    background: black;
+    color: #ddd;
+    font-family: Consolas, monospace;
+    margin: 0;
+    height: 100vh;
+    display: flex;
+  }
+
+  #sidebar {
+    width: 240px;
+    background: black;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+    overflow-y: auto;
+  }
+
+  #sidebarTitle {
+    color: red;
+    font-size: 23px;
+    text-align: center;
+    margin-bottom: 10px;
+    font-weight: bold;
+  }
+
+  #notesList button {
+    background: #444;
+    border: none;
+    color: #red;
+    padding: 8px;
+    text-align: left;
+    margin-bottom: 6px;
+    border-radius: 4px;
+    cursor: pointer;
+  }
+
+  #notesList button:hover {
+    background: #666;
+			color: none;
+  }
+
+  #addBtn {
+    background: #444;
+    color: red;
+    padding: 8px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  #addBtn:hover {
+    background: #666;
+  }
+
+  #main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 10px;
+  }
+
+  #editorHeader {
+    display: flex;
+  
+			justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+  }
+
+  #editorHeader input {
+    background: black;
+    border: 1px solid maroon;
+    color: red;
+    padding: 6px;
+    border-radius: 4px;
+			outline:none;
+  }
+
+  #editorHeader button {
+    background: #444;
+    color: red;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 10px;
+    margin-left: 6px;
+    cursor: pointer;
+  }
+
+  #editorHeader button:hover {
+    background: #666;
+			
+  }
+
+  #editor {
+    flex: 1;
+    background: #1e1e1e;
+    color: red;
+    border: 1px solid maroon;
+    border-radius: 6px;
+    padding: 10px;
+    resize: none;
+    font-family: monospace;
+    font-size: 14px;
+    outline: none;
+  }
+</style>
+</head>
+
+<body>
+  <div id="sidebar">
+    <div id="sidebarTitle">Notes</div>
+    <div id="notesList"></div>
+    <button id="addBtn">+ Add</button>
+  </div>
+
+  <div id="main">
+    <div id="editorHeader">
+      <input id="noteTitle" placeholder="Note Title" />
+      <div>
+        <button id="saveNote">Save</button>
+        <button id="deleteNote">Delete</button>
+        <button id="closeNote">Close</button>
+      </div>
+    </div>
+    <textarea id="editor" placeholder="Write your notes here..."></textarea>
+  </div>
+
+<script>
+  const notesList = document.getElementById("notesList");
+  const addBtn = document.getElementById("addBtn");
+  const editor = document.getElementById("editor");
+  const noteTitle = document.getElementById("noteTitle");
+  const saveNote = document.getElementById("saveNote");
+  const deleteNote = document.getElementById("deleteNote");
+  const closeNote = document.getElementById("closeNote");
+
+  let notes = JSON.parse(localStorage.getItem("codeNotes") || "{}");
+  let currentNote = null;
+
+  function refreshNotesList() {
+    notesList.innerHTML = "";
+    for (const [key, note] of Object.entries(notes)) {
+      const btn = document.createElement("button");
+      btn.textContent = note.title;
+      btn.onclick = () => openNote(key);
+      notesList.appendChild(btn);
+    }
+  }
+
+  function openNote(id) {
+    currentNote = id;
+    noteTitle.value = notes[id].title;
+    editor.value = notes[id].content;
+  }
+
+  function saveCurrentNote() {
+    if (!noteTitle.value.trim()) {
+      alert("Please enter a title.");
+      return;
+    }
+    if (!currentNote) {
+      currentNote = Date.now().toString();
+    }
+    notes[currentNote] = {
+      title: noteTitle.value,
+      content: editor.value
+    };
+    localStorage.setItem("codeNotes", JSON.stringify(notes));
+    refreshNotesList();
+  }
+
+  function deleteCurrentNote() {
+    if (currentNote && confirm("Delete this note?")) {
+      delete notes[currentNote];
+      localStorage.setItem("codeNotes", JSON.stringify(notes));
+      noteTitle.value = "";
+      editor.value = "";
+      currentNote = null;
+      refreshNotesList();
+    }
+  }
+
+  addBtn.addEventListener("click", () => {
+    currentNote = null;
+    noteTitle.value = "";
+    editor.value = "";
+    noteTitle.focus();
+  });
+
+  saveNote.addEventListener("click", saveCurrentNote);
+  deleteNote.addEventListener("click", deleteCurrentNote);
+  closeNote.addEventListener("click", () => {
+    noteTitle.value = "";
+    editor.value = "";
+    currentNote = null;
+  });
+
+  refreshNotesList();
+</script>
+</body>
+</html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Links</title>
+    <style>
+        /* Reusing the notes app color scheme and font */
+        body {
+            background: black;
+            color: red;
+            font-family: Consolas, monospace;
+            margin: 0;
+            padding: 20px;
+            /* Allow scrolling when content overflows */
+            overflow-y: auto; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: red;
+            font-size: 24px;
+            margin-bottom: 25px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        #linksContainer {
+            width: 100%;
+            max-width: 600px; /* Center content nicely */
+            display: flex;
+            flex-direction: column;
+            gap: 15px; /* Space between link entries */
+        }
+
+        /* Styling for each individual link entry */
+        .link-entry {
+            display: flex;
+            justify-content: space-between; /* Pushes copy button to the right */
+            align-items: center;
+            background: #1e1e1e;
+            border: 1px solid maroon;
+            border-radius: 6px;
+            padding: 10px;
+            /* Center text inside the entry box */
+            text-align: center; 
+        }
+
+        /* Styling the Link Button itself (the <a> tag) */
+        .link-btn {
+            /* This makes the link take up available space */
+            flex-grow: 1; 
+            background: #444; 
+            border: none;
+            color: red;
+            padding: 12px;
+            text-decoration: none; /* Remove default link underline */
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            /* Center the text within the button space */
+            display: block; 
+            margin-right: 10px; /* Space between link button and copy button */
+            transition: background 0.3s;
+        }
+
+        .link-btn:hover {
+            background: #666;
+							
+        }
+
+        /* Styling the Copy Button */
+        .copy-btn {
+            background: #444;
+            color: red;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: Consolas, monospace;
+        }
+
+        .copy-btn:hover {
+            background: #666;
+        }
+    </style>
+</head>
+
+<body>
+
+  <h1>Links</h1>
+
+
+  
+<div id="linksContainer">
+    
+    <div class="link-entry">
+      
+     <button class="link-btn"
+        data-url="https://placeholder.com"
+        onclick="openLink('https://placeholder.com')">placeholder</button>
+
+
+      <button class="copy-btn" onclick="copyLink(this)">Copy</button>
+    </div>
+
+   
+
+  </div>
+
+<script>
+function openLink(url) {
+    window.location.href = url; // No preview on hover
+}
+</script>
+
+<!-- JS: COPY BUTTON -->
+<script>
+function copyLink(buttonElement) {
+    const linkBtn = buttonElement.previousElementSibling;
+    const urlToCopy = linkBtn.getAttribute('data-url');
+
+    navigator.clipboard.writeText(urlToCopy).then(() => {
+        buttonElement.textContent = "Copied!";
+        setTimeout(() => {
+            buttonElement.textContent = "Copy";
+        }, 1500);
+    });
+}
+</script>
+
+
+
+</body>
+</html>

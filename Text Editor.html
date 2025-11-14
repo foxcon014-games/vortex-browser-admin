@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Text Editor</title>
+  <style>
+    body {
+      background: #1e1e1e;
+      color: #eee;
+      font-family: Consolas, monospace;
+      margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      background: black;
+      border-bottom: none;
+      border-left: none;
+					border-top: none;
+					border-right: none;
+					padding: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .left-section {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .title {
+      font-size: 23px;
+      color: red;
+      font-weight: bold;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    button {
+      background: #444;
+      color: red;
+      border: none;
+      padding: 6px 12px;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+    }
+
+    button:hover {
+      background: #666;
+    }
+
+    #renameInput {
+      background: black;
+      color: red;
+      border: 1px solid maroon;
+      border-radius: 4px;
+      padding: 4px 6px;
+      font-size: 13px;
+      width: 160px;
+      margin-right: 5px;
+    }
+
+    #renameInput:focus {
+      outline: none;
+    }
+
+    main {
+      flex: 1;
+      display: flex;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .line-numbers {
+      background: black;
+      
+					color: #858585;
+      padding: 10px 8px 10px 4px;
+      text-align: right;
+      user-select: none;
+      width: 50px;
+      overflow: hidden;
+      font-size: 14px;
+      white-space: pre;
+      line-height: 1.4em;
+      border-right: none;
+      position: relative;
+    }
+
+    .line-highlight {
+      position: absolute;
+      left: 0;
+      width: 100%;
+      background: rgba(128, 0, 0, 0.25);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    textarea {
+      flex: 1;
+      background: #1e1e1e;
+     border-bottom: 0px solid maroon;
+      border-left: 1px solid maroon;
+					border-top: 1px solid maroon;
+					border-right: 0px solid maroon;
+					color: red;
+      resize: none;
+      padding: 10px;
+      font-size: 14px;
+      font-family: monospace;
+      outline:none;
+      line-height: 1.4em;
+      overflow-y: scroll;
+      overflow-x: hidden; /* Lock horizontal scroll */
+      white-space: pre;   /* Prevent wrapping for horizontal scroll removal */
+    }
+
+    /* Optional: hide horizontal scrollbar if still appears */
+    textarea::-webkit-scrollbar {
+      height: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="left-section">
+      <div class="title">Text Editor</div>
+    </div>
+
+    <div class="buttons">
+      <input type="text" id="renameInput" placeholder="File Name Here" />
+      <button id="openBtn">Open File</button>
+      <button id="saveBtn">Save</button>
+      <button id="closeBtn">Close</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="line-numbers" id="lineNumbers">
+      <div class="line-highlight" id="lineHighlight"></div>
+      1
+    </div>
+    <textarea id="editor" placeholder="Text/File Content Displays Here" spellcheck="false"></textarea>
+  </main>
+
+  <input type="file" id="fileInput" style="display:none;" />
+
+  <script>
+    const editor = document.getElementById("editor");
+    const lineNumbers = document.getElementById("lineNumbers");
+    const lineHighlight = document.getElementById("lineHighlight");
+    const openBtn = document.getElementById("openBtn");
+    const saveBtn = document.getElementById("saveBtn");
+    const closeBtn = document.getElementById("closeBtn");
+    const fileInput = document.getElementById("fileInput");
+    const renameInput = document.getElementById("renameInput");
+
+    let currentFileName = "untitled.txt";
+
+    // Update line numbers
+    function updateLineNumbers() {
+      const totalLines = editor.value.split("\n").length || 1;
+      let nums = "";
+      for (let i = 1; i <= totalLines; i++) {
+        nums += i + "\n";
+      }
+      lineNumbers.innerHTML = '<div class="line-highlight" id="lineHighlight"></div>' + nums;
+    }
+
+    // Update line highlight
+    function updateHighlightPosition() {
+      const lineHeight = parseFloat(getComputedStyle(editor).lineHeight);
+      const selectionStart = editor.selectionStart;
+      const textBeforeCaret = editor.value.substring(0, selectionStart);
+      const currentLine = textBeforeCaret.split("\n").length;
+      const top = (currentLine - 1) * lineHeight - editor.scrollTop + 10; // 10px padding
+      lineHighlight.style.top = top + "px";
+      lineHighlight.style.height = lineHeight + "px";
+    }
+
+    // Sync scroll with line numbers
+    editor.addEventListener("scroll", () => {
+      lineNumbers.scrollTop = editor.scrollTop;
+      updateHighlightPosition();
+    });
+
+    // Update highlight on typing/caret movement
+    editor.addEventListener("input", () => {
+      updateLineNumbers();
+      updateHighlightPosition();
+    });
+
+    editor.addEventListener("click", updateHighlightPosition);
+    editor.addEventListener("keyup", updateHighlightPosition);
+
+    // File handling
+    openBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", () => {
+      const file = fileInput.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        editor.value = e.target.result;
+        currentFileName = file.name;
+        renameInput.value = currentFileName;
+        updateLineNumbers();
+        updateHighlightPosition();
+      };
+      reader.readAsText(file);
+      fileInput.value = "";
+    });
+
+    saveBtn.addEventListener("click", () => {
+      try {
+        let newName = renameInput.value.trim() || currentFileName;
+        currentFileName = newName;
+        const blob = new Blob([editor.value], { type: "text/plain" });
+        const a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = currentFileName;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(a.href), 500);
+      } catch (err) {
+        console.warn("Save failed:", err);
+      }
+    });
+
+    closeBtn.addEventListener("click", () => {
+      editor.value = "";
+      renameInput.value = "";
+      lineNumbers.textContent = "1";
+      currentFileName = "untitled.txt";
+    });
+
+    // Initialize
+    updateLineNumbers();
+    updateHighlightPosition();
+  </script>
+</body>
+</html>
